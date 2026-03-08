@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 export default function Navbar() {
   return (
     <header>
@@ -9,16 +11,21 @@ export default function Navbar() {
 
         <ul className="nav-links">
           <li>
-            <a href="#">Cursos</a>
+            <Link to="/cursos">Cursos</Link>
           </li>
+
           <li>
-            <a href="#">Expertos</a>
+            <Link to="/expertos">Expertos</Link>
           </li>
+
           <li>
-            <a href="#">Comunidad</a>
+            <Link to="/comunidad">Comunidad</Link>
           </li>
+
           <li>
-            <a className="btn-main">Iniciar Sesión</a>
+            <Link to="/login" className="btn-main">
+              Iniciar Sesión
+            </Link>
           </li>
         </ul>
       </nav>
