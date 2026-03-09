@@ -55,7 +55,7 @@ export default function Login() {
   }
 
   const goToDashboard = () => {
-    if (userRole === 1) navigate('/admin/dashboard')
+    if (userRole === 1) navigate('/admin')
 
     if (userRole === 2) navigate('/instructor/dashboard')
 
