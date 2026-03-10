@@ -43,9 +43,25 @@ export default function Login() {
 
     const { data: usuario } = await supabase
       .from('usuarios')
-      .select('rol_id')
+      .select('rol_id, estado')
       .eq('auth_user_id', user.id)
       .single()
+
+    if (!usuario) {
+      setErrorText('No se encontró el usuario en el sistema.')
+      setErrorOpen(true)
+      setLoading(false)
+      return
+    }
+
+    if (usuario.estado !== 'activo') {
+      await supabase.auth.signOut()
+
+      setErrorText('Tu cuenta está suspendida. Contacta al administrador.')
+      setErrorOpen(true)
+      setLoading(false)
+      return
+    }
 
     setUserRole(usuario.rol_id)
 

@@ -65,11 +65,11 @@ export const registerUser = async data => {
   if (rol === 'instructor') {
     const { error: instructorError } = await supabase.from('solicitudes_instructor').insert({
       usuario_id: usuarioId,
-      experiencia: instructorData.experiencia,
-      portafolio_url: instructorData.portafolio_url,
-      github_url: instructorData.github_url,
-      linkedin_url: instructorData.linkedin_url,
-      certificaciones: instructorData.certificaciones,
+      experiencia: instructorData?.experiencia,
+      portafolio_url: instructorData?.portafolio_url,
+      github_url: instructorData?.github_url,
+      linkedin_url: instructorData?.linkedin_url,
+      certificaciones: instructorData?.certificaciones,
       estado: 'pendiente',
     })
 
@@ -86,6 +86,8 @@ export const registerUser = async data => {
 ================================ */
 
 export const loginUser = async (email, password) => {
+  /* 1️⃣ login con Supabase Auth */
+
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
@@ -95,7 +97,33 @@ export const loginUser = async (email, password) => {
     throw new Error(error.message)
   }
 
-  return data
+  const userId = data.user.id
+
+  /* 2️⃣ obtener estado y rol */
+
+  const { data: usuario, error: usuarioError } = await supabase
+    .from('usuarios')
+    .select('estado, rol_id')
+    .eq('auth_user_id', userId)
+    .single()
+
+  if (usuarioError) {
+    throw new Error(usuarioError.message)
+  }
+
+  /* 3️⃣ validar estado */
+
+  if (usuario.estado !== 'activo') {
+    await supabase.auth.signOut()
+
+    throw new Error('Tu cuenta está suspendida. Contacta al administrador.')
+  }
+
+  return {
+    session: data.session,
+    user: data.user,
+    rol: usuario.rol_id,
+  }
 }
 
 /* ================================
@@ -133,6 +161,32 @@ export const getUserRole = async authUserId => {
 }
 
 /* ================================
+   GET USER PROFILE
+================================ */
+
+export const getUserProfile = async authUserId => {
+  const { data, error } = await supabase
+    .from('usuarios')
+    .select(
+      `
+      id,
+      nombre,
+      estado,
+      rol_id,
+      created_at
+    `
+    )
+    .eq('auth_user_id', authUserId)
+    .single()
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  return data
+}
+
+/* ================================
    GET CURRENT SESSION
 ================================ */
 
@@ -144,4 +198,18 @@ export const getCurrentSession = async () => {
   }
 
   return data.session
+}
+
+/* ================================
+   GET CURRENT USER
+================================ */
+
+export const getCurrentUser = async () => {
+  const { data, error } = await supabase.auth.getUser()
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  return data.user
 }
